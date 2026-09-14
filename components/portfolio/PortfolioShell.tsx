@@ -176,8 +176,8 @@ export default function PortfolioShell() {
         </AnimatePresence>
       </aside>
 
-      <div className="absolute right-3 bottom-3 left-3 z-20 flex flex-col gap-3 sm:right-auto sm:bottom-6 sm:left-6 sm:max-w-xl sm:flex-row sm:items-end">
-        <div className="flex flex-1 gap-2 overflow-x-auto pb-1">
+      <div className="absolute right-3 bottom-3 left-3 z-20 flex flex-col gap-3 sm:right-6 sm:bottom-6 sm:left-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex gap-3 overflow-x-auto pb-1 sm:min-w-0 sm:flex-1">
           {resume.projects.map((project) => (
             <motion.button
               key={project.title}
@@ -187,13 +187,13 @@ export default function PortfolioShell() {
                 setFace("projects");
                 playClick(muted);
               }}
-              className="hard-panel min-w-[11rem] flex-1 p-3 text-left"
+              className="hard-panel min-w-[15rem] flex-1 p-4 text-left"
             >
-              <p className="font-mono text-[9px] tracking-[0.2em] text-[#8a8a8a] uppercase">
+              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8a8a8a] uppercase">
                 Node
               </p>
-              <p className="mt-1 text-xs font-medium leading-4">{project.title}</p>
-              <p className="mt-2 font-mono text-[9px] tracking-wide text-[#8a8a8a]">
+              <p className="mt-1.5 text-sm font-medium leading-5">{project.title}</p>
+              <p className="mt-2 font-mono text-[10px] tracking-wide text-[#8a8a8a]">
                 {project.stack.slice(0, 3).join(" · ")}
               </p>
             </motion.button>

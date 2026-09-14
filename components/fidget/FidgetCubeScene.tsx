@@ -100,7 +100,6 @@ function FidgetCube({ damping, reducedMotion, muted, onSelectFace }: CubeProps) 
     <group ref={group}>
       <mesh
         ref={mesh}
-        castShadow
         onPointerDown={(e) => {
           e.stopPropagation();
           dragging.current = true;
@@ -193,20 +192,25 @@ export type FidgetCubeSceneProps = CubeProps;
 export default function FidgetCubeScene(props: FidgetCubeSceneProps) {
   return (
     <Canvas
-      shadows
       dpr={[1, 1.75]}
       camera={{ position: [0, 0.2, 6.2], fov: 38 }}
-      gl={{ antialias: true, alpha: true }}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      onCreated={({ gl }) => {
+        // Recover from GPU context loss (dev remounts, tab switches, driver
+        // resets) instead of leaving the canvas blank. preventDefault lets the
+        // browser restore the context and three re-uploads its resources.
+        const canvas = gl.domElement;
+        canvas.addEventListener(
+          "webglcontextlost",
+          (e) => e.preventDefault(),
+          false,
+        );
+      }}
       className="h-full w-full touch-none"
     >
       <color attach="background" args={["#121212"]} />
       <ambientLight intensity={0.55} />
-      <directionalLight
-        position={[4, 6, 5]}
-        intensity={1.15}
-        color="#f0f0f0"
-        castShadow
-      />
+      <directionalLight position={[4, 6, 5]} intensity={1.15} color="#f0f0f0" />
       <directionalLight position={[-4, -2, -3]} intensity={0.25} color="#888888" />
       <FidgetCube {...props} />
       <ContactShadows
