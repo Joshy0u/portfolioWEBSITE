@@ -84,6 +84,72 @@ export const resume = {
   },
 } as const;
 
+export type DomainId = "data" | "platform" | "ml";
+
+// Each bottom "node" maps to one domain. Clicking a node populates the
+// top-right card with that domain's details, sourced from the resumes.
+export const domains: {
+  id: DomainId;
+  index: string;
+  label: string;
+  kicker: string;
+  summary: string;
+  tags: string[];
+  highlights: string[];
+}[] = [
+  {
+    id: "data",
+    index: "01",
+    label: "Data Layer",
+    kicker: "Databases",
+    summary:
+      "Schema design, managed Postgres, and data integrity across microservices.",
+    tags: ["PostgreSQL", "Supabase", "MongoDB", "Redis", "MySQL", "Pydantic"],
+    highlights: [
+      "Modeled and validated schemas with Pydantic to keep data integrity across microservices.",
+      "Built automated ingestion pipelines and REST APIs in Python, tuning queries for throughput.",
+      "Ran managed Postgres on Supabase behind a cluster-native restaurant management system.",
+    ],
+  },
+  {
+    id: "platform",
+    index: "02",
+    label: "Platform / DevOps",
+    kicker: "Infra & K8s",
+    summary:
+      "GitOps delivery, Kubernetes operations, and observability you can feel.",
+    tags: [
+      "Kubernetes",
+      "ArgoCD",
+      "Terraform",
+      "Helm",
+      "Docker",
+      "Grafana",
+      "Traefik",
+      "Tailscale",
+    ],
+    highlights: [
+      "Architected a decoupled GitOps CI/CD pipeline with GitHub Actions and ArgoCD reconciliation loops.",
+      "Ran Blue-Green and Canary rollouts as live stress tests of update and traffic scenarios.",
+      "Codified a Grafana monitoring stack with Terraform + Helm, PVCs on Longhorn backed to S3.",
+      "Exposed cluster master nodes securely over a Tailscale mesh with Traefik ingress.",
+    ],
+  },
+  {
+    id: "ml",
+    index: "03",
+    label: "Machine Learning",
+    kicker: "ML & Autonomy",
+    summary:
+      "Deep reinforcement learning and perception on a 1/10-scale autonomous racecar.",
+    tags: ["PyTorch", "ROS2", "Deep RL", "Python"],
+    highlights: [
+      "Trained an actor-critic deep RL policy to optimize racing lines on F1Tenth.",
+      "Deployed wall-following and pursuit controllers as ROS2 nodes in Python.",
+    ],
+  },
+];
+
 export const cubeFaces: {
   id: CubeFace;
   label: string;
