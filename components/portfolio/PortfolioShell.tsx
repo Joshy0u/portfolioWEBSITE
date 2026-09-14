@@ -2,11 +2,10 @@
 
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
-import { AtSign, GitFork, Mail } from "lucide-react";
+import { ArrowUpRight, AtSign, GitFork, Mail } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import FidgetCanvas from "@/components/fidget/FidgetCanvas";
 import SkillBadgeField from "@/components/fidget/SkillBadgeField";
-import TactileControls from "@/components/fidget/TactileControls";
 import { playClick } from "@/lib/fidget-audio";
 import {
   cubeFaces,
@@ -85,8 +84,7 @@ function FaceCopy({ face }: { face: CubeFace }) {
   if (face === "fidget") {
     return (
       <p className="text-sm leading-6 text-[#cfcfcf]">
-        Drag the cube. Toss it. Mash the clicker. Fling the skill tags. Damping
-        knob bleeds spin energy. Mute if the ticks get loud. This panel is the
+        Drag the cube. Toss it. Fling the skill tags around. This panel is the
         fidget face — no resume, just tactile noise.
       </p>
     );
@@ -112,10 +110,10 @@ function FaceCopy({ face }: { face: CubeFace }) {
 export default function PortfolioShell() {
   const [face, setFace] = useState<CubeFace>("about");
   const [activeDomain, setActiveDomain] = useState<DomainId | null>(null);
-  const [muted, setMuted] = useState(false);
-  const [damping, setDamping] = useState(0.45);
-  const [clicks, setClicks] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Fidget audio + spin damping are fixed now that the Tactile panel is gone.
+  const muted = false;
+  const damping = 0.45;
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -187,22 +185,29 @@ export default function PortfolioShell() {
                 </span>
               </div>
               <h2 className="mt-1 text-lg tracking-tight">{domain.label}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#cfcfcf]">
+              <p className="mt-2 text-sm font-medium leading-6 text-[#e5e5e5]">
                 {domain.summary}
               </p>
-              <ul className="mt-3 grid gap-2">
-                {domain.highlights.map((h) => (
-                  <li
-                    key={h}
-                    className="border-l border-[#e5e5e5]/30 pl-3 text-xs leading-5 text-[#bdbdbd]"
-                  >
-                    {h}
-                  </li>
+              <div className="mt-3 grid gap-2.5">
+                {domain.story.map((p) => (
+                  <p key={p} className="text-sm leading-6 text-[#cfcfcf]">
+                    {p}
+                  </p>
                 ))}
-              </ul>
+              </div>
               <p className="mt-3 font-mono text-[10px] tracking-wider text-[#8a8a8a]">
                 {domain.tags.join(" · ")}
               </p>
+              <a
+                href={domain.repo.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 flex items-center gap-2 border-t border-[#e5e5e5]/15 pt-3 font-mono text-xs tracking-wide text-[#cfcfcf] transition-colors hover:text-[#ffffff]"
+              >
+                <GitFork className="h-4 w-4 shrink-0" />
+                <span className="truncate">{domain.repo.label}</span>
+                <ArrowUpRight className="ml-auto h-4 w-4 shrink-0 text-[#8a8a8a]" />
+              </a>
             </motion.section>
           ) : (
             <motion.section
@@ -259,23 +264,6 @@ export default function PortfolioShell() {
             );
           })}
         </div>
-        <TactileControls
-          muted={muted}
-          onMutedChange={setMuted}
-          damping={damping}
-          onDampingChange={setDamping}
-          clicks={clicks}
-          onClicker={() => {
-            playClick(muted);
-            setClicks((n) => {
-              const next = n + 1;
-              if (next % 5 === 0) burst();
-              return next;
-            });
-            setFace("fidget");
-            setActiveDomain(null);
-          }}
-        />
       </div>
     </div>
   );
