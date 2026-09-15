@@ -17,28 +17,49 @@ type Body = {
   dragging: boolean;
 };
 
+// Keep badges out of the header (name + description) so they never sit under
+// the z-20 header where their clicks would be swallowed.
+function topInset(height: number) {
+  return Math.min(240, Math.max(150, Math.round(height * 0.3)));
+}
+
+const MAX_SPEED = 900; // px/s — clamps flings so bodies can't teleport across the screen
+
+function clampSpeed(b: Body) {
+  const speed = Math.hypot(b.vx, b.vy);
+  if (speed > MAX_SPEED) {
+    const k = MAX_SPEED / speed;
+    b.vx *= k;
+    b.vy *= k;
+  }
+}
+
 function seedBodies(width: number, height: number): Body[] {
-  return resume.featuredBadges.map((label, i) => {
-    const w = 108 + label.length * 2;
-    const h = 36;
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    return {
-      id: label,
-      label,
-      x: 24 + col * 130 + (i % 2) * 18,
-      y: 88 + row * 52,
-      vx: (Math.random() - 0.5) * 40,
-      vy: (Math.random() - 0.5) * 30,
-      w,
-      h,
-      dragging: false,
-    };
-  }).map((b) => ({
-    ...b,
-    x: Math.min(Math.max(8, b.x), Math.max(8, width - b.w - 8)),
-    y: Math.min(Math.max(8, b.y), Math.max(8, height - b.h - 8)),
-  }));
+  const top = topInset(height);
+  const perRow = width < 640 ? 2 : 3;
+  return resume.featuredBadges
+    .map((label, i) => {
+      const w = 108 + label.length * 2;
+      const h = 36;
+      const col = i % perRow;
+      const row = Math.floor(i / perRow);
+      return {
+        id: label,
+        label,
+        x: 24 + col * 150 + (i % 2) * 18,
+        y: top + 16 + row * 56,
+        vx: (Math.random() - 0.5) * 40,
+        vy: (Math.random() - 0.5) * 30,
+        w,
+        h,
+        dragging: false,
+      };
+    })
+    .map((b) => ({
+      ...b,
+      x: Math.min(Math.max(8, b.x), Math.max(8, width - b.w - 8)),
+      y: Math.min(Math.max(top, b.y), Math.max(top, height - b.h - 8)),
+    }));
 }
 
 type Props = {
@@ -65,6 +86,7 @@ export default function SkillBadgeField({ muted, reducedMotion }: Props) {
 
     const step = () => {
       const box = el.getBoundingClientRect();
+      const top = topInset(box.height);
       const list = bodies.current;
       const dt = 1 / 60;
       const rest = 0.82;
@@ -72,6 +94,7 @@ export default function SkillBadgeField({ muted, reducedMotion }: Props) {
       if (!reducedMotion) {
         for (const b of list) {
           if (b.dragging) continue;
+          clampSpeed(b);
           b.x += b.vx * dt;
           b.y += b.vy * dt;
           b.vx *= 0.992;
@@ -83,8 +106,8 @@ export default function SkillBadgeField({ muted, reducedMotion }: Props) {
             b.x = box.width - 8 - b.w;
             b.vx = -Math.abs(b.vx) * rest;
           }
-          if (b.y < 8) {
-            b.y = 8;
+          if (b.y < top) {
+            b.y = top;
             b.vy = Math.abs(b.vy) * rest;
           } else if (b.y + b.h > box.height - 8) {
             b.y = box.height - 8 - b.h;
@@ -159,22 +182,35 @@ export default function SkillBadgeField({ muted, reducedMotion }: Props) {
             const body = bodies.current.find((b) => b.id === label);
             if (!body) return;
             const now = performance.now();
-            const dt = Math.max(8, now - d.t) / 1000;
+            // Floor dt higher (30ms) so a single fast sample can't explode the
+            // velocity, then smooth it and clamp so releases never teleport.
+            const dt = Math.max(30, now - d.t) / 1000;
             const dx = e.clientX - d.lx;
             const dy = e.clientY - d.ly;
             body.x += dx;
             body.y += dy;
-            body.vx = dx / dt;
-            body.vy = dy / dt;
+            const sampleVx = dx / dt;
+            const sampleVy = dy / dt;
+            body.vx = body.vx * 0.4 + sampleVx * 0.6;
+            body.vy = body.vy * 0.4 + sampleVy * 0.6;
+            clampSpeed(body);
             d.lx = e.clientX;
             d.ly = e.clientY;
             d.t = now;
           }}
           onPointerUp={() => {
+            const d = drag.current;
             const body = bodies.current.find((b) => b.id === label);
             if (body) {
               body.dragging = false;
-              if (Math.hypot(body.vx, body.vy) > 180) playThrow(muted);
+              // If the pointer was held still before release, don't fling.
+              if (!d || performance.now() - d.t > 80) {
+                body.vx = 0;
+                body.vy = 0;
+              } else {
+                clampSpeed(body);
+                if (Math.hypot(body.vx, body.vy) > 180) playThrow(muted);
+              }
             }
             drag.current = null;
           }}
